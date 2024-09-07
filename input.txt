@@ -1,0 +1,11 @@
+TTD A
+TTKT G
+C E F
+A B C D
+D C F
+F K
+B I G
+I G
+K
+G
+E G K
