@@ -4,19 +4,22 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class HillClimbingSearch {
-    public static List<SearchState> hillClimbingSearch(String startNode, String endNode, Graph graph) {
+    public static List<SearchState> hillClimbingSearch(String startNode, String endNode, Graph graph, Map<String, String> stringStringMap) {
         List<SearchState> results = new ArrayList<>();
         LinkedList<String> lstL2 = new LinkedList<>();  // Danh sách L
         String currentState = startNode;
-        
+
         while (!endNode.equals(currentState)) {
             // lấy danh sách trạng thái kề
             List<String> neighbors = graph.getNeighbors(currentState);
             String neighborStr = String.join(",", neighbors);
+            stringStringMap.putIfAbsent(currentState, neighborStr);
             // Sắp xếp list L1 theo giá trị số tăng dần
             neighbors.sort((s1, s2) -> {
                 // Lấy phần số từ chuỗi và so sánh
@@ -45,10 +48,10 @@ public class HillClimbingSearch {
         }
         return results;
     }
-    
+
     public static void main(String[] args) {
         String start = "A20";
-        String end = "B0";
+        String end = "E7";
         Graph g = new Graph();
         try (BufferedReader br = new BufferedReader(new FileReader("graph-inputHillClimbing.txt"))) {
             String line;
@@ -69,11 +72,12 @@ public class HillClimbingSearch {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        List<SearchState> results = hillClimbingSearch(start, end, g);
-        printResult(results, end);
+        Map<String, String> stringStringMap = new HashMap<>();
+        List<SearchState> results = hillClimbingSearch(start, end, g, stringStringMap);
+        printResult(results, start, end, stringStringMap);
     }
 
-    private static void printResult(List<SearchState> results, String end) {
+    private static void printResult(List<SearchState> results, String start, String end, Map<String, String> stringStringMap) {
         // In tiêu đề bảng
         System.out.println("\nQuá trình tìm kiếm theo PP leo đồi");
         System.out.println("\n+-----------+---------------+---------------+------------------------+");
@@ -90,18 +94,21 @@ public class HillClimbingSearch {
                     result.listL);
             System.out.println("+-----------+---------------+---------------+------------------------+");
         }
-
-        if (end.equals(results.getLast().state)) {
-            // In đường đi
-            System.out.println("\nĐường đi tìm được:");
-            for (int i = 0; i < results.size(); i++) {
-                System.out.print(results.get(i).state);
-                if (i < results.size() - 1) {
-                    System.out.print(" → ");
+        String slowPath = end;
+        StringBuilder fastestPath = new StringBuilder(end);
+        while (slowPath != start) {
+            for (Map.Entry<String, String> x: stringStringMap.entrySet()) {
+                if (x.getValue().contains(slowPath)) {
+                    slowPath = x.getKey();
+                    fastestPath.insert(0, x.getKey() + " → ");
+                    break;
                 }
             }
-        } else {
+        }
+        if (fastestPath.isEmpty() || !(fastestPath.toString().startsWith(start) && fastestPath.toString().endsWith(end))) {
             System.out.println("\nKhông tìm thấy đường đi phù hợp.");
+        } else {
+            System.out.println("\nĐường đi tìm được: " + fastestPath);
         }
         System.out.println();
     }
