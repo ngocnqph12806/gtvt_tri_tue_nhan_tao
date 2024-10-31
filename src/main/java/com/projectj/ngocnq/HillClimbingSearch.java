@@ -1,7 +1,9 @@
 package com.projectj.ngocnq;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,7 +53,7 @@ public class HillClimbingSearch {
 
     public static void main(String[] args) {
         String start = "A20";
-        String end = "E7";
+        String end = "B0";
         Graph g = new Graph();
         try (BufferedReader br = new BufferedReader(new FileReader("graph-inputHillClimbing.txt"))) {
             String line;
@@ -79,20 +81,21 @@ public class HillClimbingSearch {
 
     private static void printResult(List<SearchState> results, String start, String end, Map<String, String> stringStringMap) {
         // In tiêu đề bảng
-        System.out.println("\nQuá trình tìm kiếm theo PP leo đồi");
-        System.out.println("\n+-----------+---------------+---------------+------------------------+");
-        System.out.println("| Phát      | Trạng thái    | Danh sách L1  | Danh sách L2           |");
-        System.out.println("| triển TT  | kế            |               |                        |");
-        System.out.println("+-----------+---------------+---------------+------------------------+");
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("\nQuá trình tìm kiếm theo PP leo đồi");
+        stringBuilder.append("\n+-----------+---------------+---------------+------------------------+");
+        stringBuilder.append("\n| Phát      | Trạng thái    | Danh sách L1  | Danh sách L2           |");
+        stringBuilder.append("\n| triển TT  | kế            |               |                        |");
+        stringBuilder.append("\n+-----------+---------------+---------------+------------------------+");
 
         // In nội dung bảng
         for (SearchState result : results) {
-            System.out.printf("| %-9s | %-13s | %-13s | %-22s |\n",
+            stringBuilder.append(String.format("\n| %-9s | %-13s | %-13s | %-22s |",
                     result.state,
                     result.nextStates,
                     result.listL1,
-                    result.listL);
-            System.out.println("+-----------+---------------+---------------+------------------------+");
+                    result.listL));
+            stringBuilder.append("\n+-----------+---------------+---------------+------------------------+");
         }
         String slowPath = end;
         StringBuilder fastestPath = new StringBuilder(end);
@@ -106,10 +109,17 @@ public class HillClimbingSearch {
             }
         }
         if (fastestPath.isEmpty() || !(fastestPath.toString().startsWith(start) && fastestPath.toString().endsWith(end))) {
-            System.out.println("\nKhông tìm thấy đường đi phù hợp.");
+            stringBuilder.append("\nKhông tìm thấy đường đi phù hợp.");
         } else {
-            System.out.println("\nĐường đi tìm được: " + fastestPath);
+            stringBuilder.append("\nĐường đi tìm được: ").append(fastestPath);
         }
-        System.out.println();
+        System.out.println(stringBuilder);
+        // Method 1: Using BufferedWriter
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("graph-outputHillClimbing.txt"))) {
+            writer.write(stringBuilder.toString());
+            System.out.println("File written using BufferedWriter");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
