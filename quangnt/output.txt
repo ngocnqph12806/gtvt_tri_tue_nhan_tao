@@ -1,0 +1,14 @@
+Các bước:
+Bước 1: Đường đi = A, Chi phí = 0
+Bước 2: Đường đi = A -> D, Chi phí = 7
+Bước 3: Đường đi = A -> C, Chi phí = 9
+Bước 4: Đường đi = A -> D -> E, Chi phí = 11
+Bước 5: Đường đi = A -> D -> E -> I, Chi phí = 14
+Bước 6: Đường đi = A -> D -> H, Chi phí = 15
+Bước 7: Đường đi = A -> C -> H, Chi phí = 15
+Bước 8: Đường đi = A -> D -> E -> K, Chi phí = 15
+Bước 9: Đường đi = A -> D -> E -> F, Chi phí = 17
+Bước 10: Đường đi = A -> D -> E -> I -> B, Chi phí = 19
+
+Đường đi tối ưu:
+Đường đi = A -> D -> E -> I -> B, Tổng chi phí = 19
