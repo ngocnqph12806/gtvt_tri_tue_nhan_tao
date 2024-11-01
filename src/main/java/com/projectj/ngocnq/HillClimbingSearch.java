@@ -52,12 +52,13 @@ public class HillClimbingSearch {
     }
 
     public static void main(String[] args) {
-        String start = "A20";
-        String end = "B0";
+        String start = "";
+        String end = "";
         Graph g = new Graph();
         try (BufferedReader br = new BufferedReader(new FileReader("graph-inputHillClimbing.txt"))) {
             String line;
             // đọc file txt
+            int i = 0;
             while ((line = br.readLine()) != null) {
                 // tách giá trị thành 2 phần bởi dấu phẩy
                 // trước giấy phẩy sẽ là trạng thái phát triển
@@ -67,9 +68,14 @@ public class HillClimbingSearch {
                 // nếu tách nhau bởi dấu phẩy ra mà có 2 phần tử thì phần tử đầu làm trạng thái pt,
                 // phần tử sau là trạng thái kề nếu không có để rỗng
                 String destination = parts.length > 1 ? parts[1].trim() : "";
-
-                // Thêm cạnh vào đồ thị
-                g.addEdge(source, destination);
+                if (i == 0) {
+                    start = source;
+                    end = destination;
+                } else {
+                    // Thêm cạnh vào đồ thị
+                    g.addEdge(source, destination);
+                }
+                i++;
             }
         } catch (IOException e) {
             e.printStackTrace();
