@@ -1,15 +1,32 @@
-A B
+# Các nút và giá trị heuristic
+A 14
+B 0
+C 15
+D 6
+E 8
+F 7
+G 12
+H 10
+I 4
+K 2
+
+# Các cạnh với chi phí
 A C 9
 A D 7
+A E 13
 A F 20
 C H 6
+D H 8
 D E 4
+E K 4
 E I 3
 F G 4
 F E 6
 H K 5
+K I 9
 I B 5
 K B 6
-K I 9
-E K 4
-H D 8
+
+# Nút bắt đầu và đích
+Start A
+Goal B

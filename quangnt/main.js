@@ -1,106 +1,103 @@
-const fs = require("fs");
+const fs = require('fs');
 
-// Phân tích tệp đầu vào
-function parseGraph(filename) {
-  const data = fs.readFileSync(filename, "utf-8").split("\n");
-  const [startNode, endNode] = data[0].trim().split(" ");
-  const graph = {};
+// Hàm đọc dữ liệu từ file input
+function readInput(filePath) {
+    const data = fs.readFileSync(filePath, 'utf8').split('\n');
+    const graph = {};
+    const heuristics = {};
+    let startNode = null;
+    let goalNode = null;
 
-  data.slice(1).forEach((line) => {
-    if (line.trim()) {
-      const [from, to, cost] = line.trim().split(" ");
-      if (!graph[from]) graph[from] = [];
-      if (!graph[to]) graph[to] = [];
-      graph[from].push({ node: to, cost: parseInt(cost) });
-      graph[to].push({ node: from, cost: parseInt(cost) }); // Nếu đồ thị là vô hướng
-    }
-  });
-
-  return { graph, startNode, endNode };
-}
-
-// Hàng đợi ưu tiên (Min-Heap) cho phương pháp nhánh và cận
-class PriorityQueue {
-  constructor() {
-    this.queue = [];
-  }
-
-  enqueue(element, priority) {
-    this.queue.push({ element, priority });
-    this.queue.sort((a, b) => a.priority - b.priority);
-  }
-
-  dequeue() {
-    return this.queue.shift().element;
-  }
-
-  isEmpty() {
-    return this.queue.length === 0;
-  }
-}
-
-// Thuật toán Nhánh và Cận
-function branchAndBound(graph, startNode, endNode) {
-  const pq = new PriorityQueue();
-  pq.enqueue({ path: [startNode], cost: 0 }, 0);
-  const visited = new Set();
-  const steps = [];
-
-  while (!pq.isEmpty()) {
-    const { path, cost } = pq.dequeue();
-    const currentNode = path[path.length - 1];
-
-    // Ghi lại bước thực hiện
-    steps.push({ path: [...path], cost });
-
-    // Nếu đã đến nút đích, trả về kết quả
-    if (currentNode === endNode) {
-      return { steps, path, totalCost: cost };
-    }
-
-    // Đánh dấu nút đã được duyệt
-    visited.add(currentNode);
-
-    // Khám phá các nút kề
-    graph[currentNode].forEach((neighbor) => {
-      if (!visited.has(neighbor.node)) {
-        const newPath = [...path, neighbor.node];
-        const newCost = cost + neighbor.cost;
-        pq.enqueue({ path: newPath, cost: newCost }, newCost);
-      }
+    data.forEach(line => {
+        const tokens = line.trim().split(' ');
+        if (tokens[0] === 'Start') {
+            startNode = tokens[1];
+        } else if (tokens[0] === 'Goal') {
+            goalNode = tokens[1];
+        } else if (tokens.length === 2) {
+            heuristics[tokens[0]] = parseInt(tokens[1], 10);
+        } else if (tokens.length === 3) {
+            const [from, to, cost] = tokens;
+            if (!graph[from]) graph[from] = [];
+            graph[from].push({ node: to, cost: parseInt(cost, 10) });
+        }
     });
-  }
 
-  return { steps, path: null, totalCost: Infinity }; // Không tìm thấy đường đi
+    return { graph, heuristics, startNode, goalNode };
 }
 
-// Ghi kết quả ra tệp
-function writeOutput(filename, result) {
-  const lines = [];
+// Thuật toán nhánh và cận
+function branchAndBound(graph, heuristics, startNode, goalNode) {
+    const visited = new Set();
+    const queue = [{ path: [startNode], cost: 0, heuristic: heuristics[startNode] }];
+    const steps = [];
 
-  lines.push("Các bước:");
+    while (queue.length > 0) {
+        // Sắp xếp hàng đợi dựa trên tổng chi phí (cost + heuristic)
+        queue.sort((a, b) => (a.cost + a.heuristic) - (b.cost + b.heuristic));
+        
+        const current = queue.shift();
+        const currentNode = current.path[current.path.length - 1];
+
+        // Ghi lại bước thực hiện
+        steps.push(`Visiting Node: ${currentNode}, Path: ${current.path.join(' -> ')}, Cost: ${current.cost}`);
+
+        // Kiểm tra nếu đã đến đích
+        if (currentNode === goalNode) {
+            return { path: current.path, cost: current.cost, steps };
+        }
+
+        // Đánh dấu nút đã được thăm
+        visited.add(currentNode);
+
+        // Mở rộng các nút kề chưa được thăm
+        if (graph[currentNode]) {
+            graph[currentNode].forEach(neighbor => {
+                if (!visited.has(neighbor.node)) {
+                    queue.push({
+                        path: [...current.path, neighbor.node],
+                        cost: current.cost + neighbor.cost,
+                        heuristic: heuristics[neighbor.node]
+                    });
+                }
+            });
+        }
+    }
+    return { path: [], cost: Infinity, steps };
+}
+
+// Hàm ghi kết quả ra file output
+function writeOutput(filePath, result) {
+  const output = [];
+
+  output.push("Bảng liệt kê các bước thực hiện thuật toán:");
+  output.push("------------------------------------------------------------");
+  output.push("| Bước |Nút hiện tại|     Đường đi       | Chi phí  |");
+  output.push("------------------------------------------------------------");
+
+  // Ghi từng bước vào bảng
   result.steps.forEach((step, index) => {
-    lines.push(
-      `Bước ${index + 1}: Đường đi = ${step.path.join(" -> ")}, Chi phí = ${step.cost}`
-    );
+      const [_, nodeInfo, pathInfo, costInfo] = step.match(/Visiting Node: (\w+), Path: (.+), Cost: (\d+)/);
+      output.push(`|  ${index + 1}   |      ${nodeInfo}     | ${pathInfo} |   ${costInfo}  |`);
   });
 
-  lines.push("\nĐường đi tối ưu:");
-  lines.push(
-    result.path
-      ? `Đường đi = ${result.path.join(" -> ")}, Tổng chi phí = ${result.totalCost}`
-      : "Không tìm thấy đường đi"
-  );
+  output.push("------------------------------------------------------------");
 
-  fs.writeFileSync(filename, lines.join("\n"), "utf-8");
+  output.push("\nĐường đi từ Trạng thái đầu => Trạng thái kết thúc:");
+  output.push("------------------------------------------------------------");
+  output.push(`| ${result.path.join(" -> ")} |`);
+  output.push("------------------------------------------------------------");
+  output.push(`Tổng chi phí: ${result.cost}`);
+  
+  fs.writeFileSync(filePath, output.join('\n'), 'utf8');
 }
 
-// Hàm chính
-function main(inputFile, outputFile) {
-  const { graph, startNode, endNode } = parseGraph(inputFile);
-  const result = branchAndBound(graph, startNode, endNode);
-  writeOutput(outputFile, result);
-}
 
-// Chạy thuật toán với các tệp đầu vào và đầu ra
-main("input.txt", "output.txt");
+// Đọc input, chạy thuật toán và ghi output
+const inputFilePath = './input.txt'; // Đường dẫn đến file input
+const outputFilePath = './output.txt'; // Đường dẫn đến file output
+
+const { graph, heuristics, startNode, goalNode } = readInput(inputFilePath);
+const result = branchAndBound(graph, heuristics, startNode, goalNode);
+writeOutput(outputFilePath, result);
+
