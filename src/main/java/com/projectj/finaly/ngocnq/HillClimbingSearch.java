@@ -22,9 +22,17 @@ public class HillClimbingSearch {
             String neighborStr = String.join(",", neighbors);
             stringStringMap.putIfAbsent(currentState, neighborStr);
             neighbors.sort((s1, s2) -> {
-                int num1 = Integer.parseInt(s1.replaceAll("\\D+", ""));
-                int num2 = Integer.parseInt(s2.replaceAll("\\D+", ""));
-                return Integer.compare(num1, num2);
+                String[] newS1s = s1.split("-");
+                String news1 = newS1s[newS1s.length - 1];
+                String[] newS2s = s2.split("-");
+                String news2 = newS2s[newS2s.length - 1];
+                int num1 = Integer.parseInt(news1.replaceAll("\\D+", ""));
+                int num2 = Integer.parseInt(news2.replaceAll("\\D+", ""));
+                if (num1 == num2) {
+                    return newS1s[0].compareTo(newS2s[0]);
+                } else {
+                    return Integer.compare(num1, num2);
+                }
             });
             if (!neighborStr.isEmpty()) {
                 LinkedList<String> stringList = new LinkedList<>(neighbors);
@@ -46,16 +54,23 @@ public class HillClimbingSearch {
     }
 
     public static void main(String[] args) {
-        String start = "A20";
-        String end = "B0";
+        String start = "";
+        String end = "";
         Graph g = new Graph();
         try (BufferedReader br = new BufferedReader(new FileReader("graph-inputHillClimbing.txt"))) {
             String line;
+            int i = 0;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",");
                 String source = parts[0].trim();
                 String destination = parts.length > 1 ? parts[1].trim() : "";
-                g.addEdge(source, destination);
+                if (i == 0) {
+                    start = source;
+                    end = destination;
+                } else {
+                    g.addEdge(source, destination);
+                }
+                i++;
             }
         } catch (IOException e) {
             e.printStackTrace();

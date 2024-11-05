@@ -63,6 +63,14 @@ public class DFSAlgorithm {
             List<String> neighbors = graph.getOrDefault(currentNode, new ArrayList<>());
             if (currentNode.equals(goalState)) {
                 duongDi.addAll(path);
+                String[] logEntry = {
+                        currentNode,
+                        "",
+                        "",
+                       "TTHT"
+                };
+                log.add(logEntry);
+
                 break;
             }
             for (String neighbor : neighbors) {

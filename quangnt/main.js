@@ -1,6 +1,5 @@
 const fs = require('fs');
 
-// Hàm đọc dữ liệu từ file input
 function readInput(filePath) {
     const data = fs.readFileSync(filePath, 'utf8').split('\n');
     const graph = {};
@@ -26,31 +25,36 @@ function readInput(filePath) {
     return { graph, heuristics, startNode, goalNode };
 }
 
-// Thuật toán nhánh và cận
 function branchAndBound(graph, heuristics, startNode, goalNode) {
     const visited = new Set();
     const queue = [{ path: [startNode], cost: 0, heuristic: heuristics[startNode] }];
     const steps = [];
-
+    let lstL = [];
     while (queue.length > 0) {
-        // Sắp xếp hàng đợi dựa trên tổng chi phí (cost + heuristic)
         queue.sort((a, b) => (a.cost + a.heuristic) - (b.cost + b.heuristic));
-        
         const current = queue.shift();
         const currentNode = current.path[current.path.length - 1];
+        if (lstL.length > 0) {
+            lstL = lstL.slice(1);
+        }
+        if (graph[currentNode]) {
+            graph[currentNode].sort((a, b) => (current.cost + b.cost + heuristics[b.node]) - (current.cost + a.cost + heuristics[a.node])).forEach(neighbor => {
+                if (!visited.has(neighbor.node)) {
+                    const newLst = [neighbor, ...lstL]
+                    lstL = newLst;
+                }
+            });
 
-        // Ghi lại bước thực hiện
-        steps.push(`Visiting Node: ${currentNode}, Path: ${current.path.join(' -> ')}, Cost: ${current.cost}`);
+        }
+        console.log(lstL)
+        steps.push(`Visiting Node: ${currentNode}, Path: ${current.path.join(' -> ')}, Cost: ${current.cost}, DanhSach: ${(lstL || []).map(e => e.node).join(", ")}`);
 
-        // Kiểm tra nếu đã đến đích
         if (currentNode === goalNode) {
             return { path: current.path, cost: current.cost, steps };
         }
 
-        // Đánh dấu nút đã được thăm
         visited.add(currentNode);
 
-        // Mở rộng các nút kề chưa được thăm
         if (graph[currentNode]) {
             graph[currentNode].forEach(neighbor => {
                 if (!visited.has(neighbor.node)) {
@@ -66,22 +70,20 @@ function branchAndBound(graph, heuristics, startNode, goalNode) {
     return { path: [], cost: Infinity, steps };
 }
 
-// Hàm ghi kết quả ra file output
 function writeOutput(filePath, result) {
   const output = [];
 
   output.push("Bảng liệt kê các bước thực hiện thuật toán:");
   output.push("------------------------------------------------------------");
-  output.push("| Bước |Nút hiện tại|     Đường đi       | Chi phí  |");
+  output.push("| Bước |Nút hiện tại|     Đường đi       | Chi phí  | Danh sách L");
   output.push("------------------------------------------------------------");
 
-  // Ghi từng bước vào bảng
   result.steps.forEach((step, index) => {
-      const [_, nodeInfo, pathInfo, costInfo] = step.match(/Visiting Node: (\w+), Path: (.+), Cost: (\d+)/);
-      output.push(`|  ${index + 1}   |      ${nodeInfo}     | ${pathInfo} |   ${costInfo}  |`);
+      const [_, nodeInfo, pathInfo, costInfo, danhSachInfo] = step.match(/Visiting Node: (\w+), Path: (.+), Cost: (\d+), DanhSach: (.+)/);
+      output.push(`|  ${index + 1}   |      ${nodeInfo}     | ${pathInfo} |   ${costInfo}  |   ${danhSachInfo || ''} `);
+      output.push("------------------------------------------------------------");
   });
 
-  output.push("------------------------------------------------------------");
 
   output.push("\nĐường đi từ Trạng thái đầu => Trạng thái kết thúc:");
   output.push("------------------------------------------------------------");
@@ -93,7 +95,6 @@ function writeOutput(filePath, result) {
 }
 
 
-// Đọc input, chạy thuật toán và ghi output
 const inputFilePath = './input.txt'; // Đường dẫn đến file input
 const outputFilePath = './output.txt'; // Đường dẫn đến file output
 
