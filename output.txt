@@ -16,4 +16,8 @@
 | G                       |                           |                           | TTHT                    |
 +-------------------------+-------------------------+-------------------------+-------------------------+
 Các bước thực hiện thuật toán DFS:
-A -> D -> C -> E -> G
+A -> D -> C -> E -> https://drive.google.com/file/d/19kRB4LtxCDByICHQ5qEu3jl54zB3Y1f0/view?usp=drivesdk
+
+
+
+
